@@ -1,0 +1,14 @@
+*&---------------------------------------------------------------------*
+*& PoolMóds.         SAPMZ58PMREVISAO
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+
+INCLUDE SAPMZ58PMREVISAO_TOP                    .    " global Data
+
+ INCLUDE SAPMZ58PMREVISAO_O01                    .  " PBO-Modules
+ INCLUDE SAPMZ58PMREVISAO_I01                    .  " PAI-Modules
+ INCLUDE SAPMZ58PMREVISAO_IMP                     .  " Implementacao da Classe

@@ -1,0 +1,36 @@
+*&---------------------------------------------------------------------*
+*& Include Z58_REL_PED_FORNECEDOR_TOP                        Report Z58_REL_PED_FORNECEDOR
+*&
+*&---------------------------------------------------------------------*
+TABLES: ekko.
+CLASS lcl_report_alv DEFINITION DEFERRED.
+
+TYPES:
+  BEGIN OF ty_output,
+    ebeln TYPE ekko-ebeln,
+    bukrs TYPE ekko-bukrs,
+    lifnr TYPE ekko-lifnr,
+    name1 TYPE lfa1-name1,
+    netwr TYPE ekpo-netwr,
+  END OF ty_output.
+
+TYPES ty_output_tab TYPE TABLE OF ty_output.
+
+DATA: gt_output_tab1 TYPE ty_output_tab.
+DATA: gt_output TYPE ty_output_tab.
+DATA: gr_report TYPE REF TO lcl_report_alv.
+
+TYPES:
+  BEGIN OF ty_pedido_cod,
+    ebeln TYPE ekpo-ebeln,
+  END OF ty_pedido_cod.
+
+DATA: gt_output_tab2 TYPE TABLE OF ty_pedido_cod.
+
+TYPES:
+  BEGIN OF ty_count_pedido,
+    ebeln TYPE ekpo-ebeln,
+    total TYPE f,
+  END OF ty_count_pedido.
+
+DATA gt_count_pedido TYPE SORTED TABLE OF ty_count_pedido WITH UNIQUE KEY ebeln.

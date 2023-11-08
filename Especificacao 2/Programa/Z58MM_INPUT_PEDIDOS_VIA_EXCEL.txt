@@ -1,0 +1,12 @@
+*&---------------------------------------------------------------------*
+*& Report Z58MM_INPUT_PEDIDOS_VIA_EXCEL
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT z58mm_input_pedidos_via_excel.
+
+INCLUDE z58mm_input_pedidos_via_top.
+
+INCLUDE z58mm_input_pedidos_via_sel.
+
+INCLUDE z58mm_input_pedidos_via_imp.

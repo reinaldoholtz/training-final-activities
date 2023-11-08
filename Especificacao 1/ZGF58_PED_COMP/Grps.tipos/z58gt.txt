@@ -1,0 +1,9 @@
+TYPE-POOL z58gt .
+CONSTANTS:
+  BEGIN OF z58gt_c_crud,
+    create TYPE c VALUE 'C',
+    read   TYPE c VALUE 'R',
+    update TYPE c VALUE 'U',
+    delete TYPE c VALUE 'D',
+    query  TYPE c VALUE 'Q',
+  END OF z58gt_c_crud.

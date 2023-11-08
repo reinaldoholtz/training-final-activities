@@ -1,0 +1,8 @@
+*&---------------------------------------------------------------------*
+*&  Include           Z58_REL_REVISAO_TOP
+*&---------------------------------------------------------------------*
+
+TABLES: ztb58pm_veiculo.
+
+DATA: gs_sf_revisao TYPE zes58_form_revisoes,
+      gt_revisoes   TYPE ztab_58_revisoes.

@@ -1,0 +1,61 @@
+*&---------------------------------------------------------------------*
+*&  Include           Z58_REL_REVISAO_FORMS
+*&---------------------------------------------------------------------*
+
+FORM buscar_dados .
+  SELECT SINGLE v~cod_veic, v~placa, v~desc_veic, v~ano,
+         m~cod_mod, m~desc_mod, f~cod_fab, f~desc_fab
+    FROM ztb58pm_veiculo AS v
+   INNER JOIN ztb58pm_mod_veic AS m ON m~cod_mod = v~cod_mod
+   INNER JOIN ztb58pm_fab_veic AS f ON f~cod_fab = m~cod_fab
+    INTO CORRESPONDING FIELDS OF @gs_sf_revisao
+   WHERE v~cod_veic = @p_codvei.
+
+  IF sy-subrc IS INITIAL.
+    SELECT *
+      FROM ztb58pm_revisao
+      INTO CORRESPONDING FIELDS OF TABLE gt_revisoes
+     WHERE cod_veic = gs_sf_revisao-cod_veic.
+  ENDIF.
+ENDFORM.
+*&---------------------------------------------------------------------*
+*&      Form  CALL_REPORT
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+*  -->  p1        text
+*  <--  p2        text
+*----------------------------------------------------------------------*
+FORM call_report .
+  DATA: lv_fm_smartform TYPE rs38l_fnam.
+  DATA: ls_ctrl_sf  TYPE ssfctrlop.
+  DATA: ls_out_opt  TYPE ssfcompop.
+
+  CALL FUNCTION 'SSF_FUNCTION_MODULE_NAME'
+    EXPORTING
+      formname = 'ZSF_58REVISOES'
+    IMPORTING
+      fm_name  = lv_fm_smartform.
+
+  ls_ctrl_sf-no_dialog = abap_false.
+  ls_out_opt-tdtitle   = 'Relatório de Revisões do Veiculo'.
+
+  CALL FUNCTION lv_fm_smartform "'/1BCDWB/SF00000326' (codigo do smartforms = ZSF_58REVISOES)
+    EXPORTING
+      control_parameters = ls_ctrl_sf
+      output_options     = ls_out_opt
+      im_veiculo         = gs_sf_revisao
+    TABLES
+      tab_revisoes       = gt_revisoes
+    EXCEPTIONS
+      formatting_error   = 1
+      internal_error     = 2
+      send_error         = 3
+      user_canceled      = 4
+      OTHERS             = 5.
+
+  IF sy-subrc <> 0.
+    MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
+  ENDIF.
+
+ENDFORM.

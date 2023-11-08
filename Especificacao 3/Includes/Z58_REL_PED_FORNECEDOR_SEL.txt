@@ -1,0 +1,19 @@
+*&---------------------------------------------------------------------*
+*&  Include           Z58_REL_PED_FORNECEDOR_SEL
+*&---------------------------------------------------------------------*
+
+SELECTION-SCREEN BEGIN OF BLOCK b1 WITH FRAME TITLE TEXT-001.
+SELECT-OPTIONS:
+  s_pedido FOR ekko-ebeln,
+  s_forndo FOR ekko-lifnr.
+PARAMETERS: p_bstyp TYPE ekko-bstyp DEFAULT 'F' MODIF ID df.
+PARAMETERS: p_bsart TYPE ekko-bsart DEFAULT 'NB' MODIF ID df.
+SELECTION-SCREEN END OF BLOCK b1.
+
+AT SELECTION-SCREEN OUTPUT.
+  LOOP AT SCREEN.
+    IF screen-group1 = 'DF'.
+      screen-input = 0.
+    ENDIF.
+    MODIFY SCREEN.
+  ENDLOOP.

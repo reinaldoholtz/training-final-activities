@@ -1,0 +1,83 @@
+*&---------------------------------------------------------------------*
+*&  Include           Z58_REL_PED_FORNECEDOR_IMP
+*&---------------------------------------------------------------------*
+
+CLASS lcl_report_alv IMPLEMENTATION.
+  METHOD factory.
+    re_instance = NEW lcl_report_alv( ).
+  ENDMETHOD.
+
+  METHOD get_data.
+    has_data = abap_false.
+
+    SELECT a~ebeln, a~bukrs, a~lifnr, b~name1, SUM( c~netwr ) AS netwr
+      FROM ekko AS a
+      LEFT JOIN lfa1 AS b ON
+        b~lifnr = a~lifnr
+      INNER JOIN ekpo AS c ON
+        c~ebeln = a~ebeln
+      INTO CORRESPONDING FIELDS OF TABLE @gt_output
+      WHERE a~ebeln IN @s_pedido
+        AND a~lifnr IN @s_forndo
+        AND a~bstyp EQ @p_bstyp
+        AND a~bsart EQ @p_bsart
+     GROUP BY a~ebeln,
+              a~bukrs,
+              a~lifnr,
+              b~name1.
+
+    IF sy-subrc IS INITIAL.
+      has_data = abap_true.
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD output_alv.
+    DATA: lr_alv     TYPE REF TO cl_salv_table.
+    DATA: lr_columns TYPE REF TO cl_salv_columns_table. "columns instance
+    DATA: lr_col     TYPE REF TO cl_salv_column_table. "columns instance
+
+    CALL METHOD cl_salv_table=>factory
+      IMPORTING
+        r_salv_table = lr_alv
+      CHANGING
+        t_table      = gt_output.
+
+    lr_alv->get_functions( )->set_all( abap_true ). "<ativa todas as functions do alv  se preferir pode setar um pf status
+
+    lr_alv->get_display_settings( )->set_striped_pattern( abap_true ). "< ativa o zebrad
+
+    CALL METHOD lr_alv->get_columns
+      RECEIVING
+        value = lr_columns.
+
+    IF lr_columns IS NOT INITIAL.
+      lr_col ?= lr_columns->get_column( 'EBELN' ).
+      CALL METHOD lr_col->set_cell_type
+        EXPORTING
+          value = if_salv_c_cell_type=>hotspot.
+    ENDIF.
+
+    DATA(lo_events) = lr_alv->get_event( ).
+
+    SET HANDLER gr_report->on_link_click FOR lo_events.
+
+    CALL METHOD lr_alv->display.
+
+  ENDMETHOD.
+
+  METHOD hasdata.
+    re_has_data = me->has_data.
+  ENDMETHOD.
+
+  METHOD on_link_click.
+    READ TABLE gt_output INDEX row INTO DATA(line).
+    IF sy-subrc IS INITIAL.
+      CASE column.
+        WHEN 'EBELN'.
+          SET PARAMETER ID 'BES' FIELD line-ebeln.
+          CALL TRANSACTION 'ME23N' AND SKIP FIRST SCREEN.
+      ENDCASE.
+    ENDIF.
+  ENDMETHOD.
+ENDCLASS.

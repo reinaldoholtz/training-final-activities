@@ -1,0 +1,17 @@
+*******************************************************************
+*   System-defined Include-files.                                 *
+*******************************************************************
+  INCLUDE LZGF58_PED_COMPTOP.                " Global Declarations
+  INCLUDE LZGF58_PED_COMPUXX.                " Function Modules
+
+*******************************************************************
+*   User-defined Include-files (if necessary).                    *
+*******************************************************************
+* INCLUDE LZGF58_PED_COMPF...                " Subroutines
+* INCLUDE LZGF58_PED_COMPO...                " PBO-Modules
+* INCLUDE LZGF58_PED_COMPI...                " PAI-Modules
+* INCLUDE LZGF58_PED_COMPE...                " Events
+* INCLUDE LZGF58_PED_COMPP...                " Local class implement.
+* INCLUDE LZGF58_PED_COMPT99.                " ABAP Unit tests
+
+INCLUDE lzgf58_ped_compf01.

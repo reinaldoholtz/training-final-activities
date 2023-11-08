@@ -1,0 +1,41 @@
+*&---------------------------------------------------------------------*
+*&  Include           Z58_REL_REVISAO_SEL
+*&---------------------------------------------------------------------*
+SELECTION-SCREEN BEGIN OF BLOCK b1 WITH FRAME TITLE TEXT-001.
+PARAMETERS: p_codvei TYPE ztb58pm_veiculo-cod_veic.
+SELECTION-SCREEN END OF BLOCK b1.
+
+"EXEMPLO DE CRIAR UM BOTAO
+"* this is a must for 'sscrfields' definition
+"TABLES sscrfields.
+
+"* this is a must in case you want to use icons
+"TYPE-POOLS icon.
+
+"DATA:
+"  gs_functxt   TYPE smp_dyntxt.
+
+"SELECTION-SCREEN FUNCTION KEY 1. " here you can use 1-5
+""PARAMETERS: p_dummy TYPE matnr.
+"PARAMETERS: p_codvei TYPE ztb58pm_veiculo-cod_veic.
+
+"INITIALIZATION.
+"  gs_functxt-icon_id   = icon_information.
+"  gs_functxt-quickinfo = 'Report Documentation'(s01).
+"  gs_functxt-icon_text = 'Gerar relatório'(s02). "Label botao
+
+"  sscrfields-functxt_01 = gs_functxt.
+
+"AT SELECTION-SCREEN.
+"  IF sscrfields-ucomm = 'FC01'.
+"    " show report documentation
+"    CALL FUNCTION 'DSYS_SHOW_FOR_F1HELP'
+"      EXPORTING
+"        dokclass         = 'RE'
+"        dokname          = sy-repid
+"        short_text       = 'X'
+"      EXCEPTIONS
+"        class_unknown    = 1
+"        object_not_found = 2
+"        OTHERS           = 3.
+"  ENDIF.

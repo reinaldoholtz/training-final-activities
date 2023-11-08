@@ -1,0 +1,106 @@
+*&---------------------------------------------------------------------*
+*&  Include           Z58_IMPEDIDOSEXCEL_IMP
+*&---------------------------------------------------------------------*
+*&---------------------------------------------------------------------*
+*&      Form  PROCESS_DATA
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+*  -->  p1        text
+*  <--  p2        text
+*----------------------------------------------------------------------*
+FORM process_data .
+  gb_error = abap_false.
+  LOOP AT gt_pedidos_excel INTO DATA(ls_line_pedido).
+
+    MOVE-CORRESPONDING: ls_line_pedido TO gs_output_tab.
+
+    "VERIFICA SE O PEDIDO JÁ EXISTE na ztb58mm_pedido e seta gs_modo I ou U
+    PERFORM get_modo USING ls_line_pedido-num_pedido.
+
+    CALL FUNCTION 'ZF58_PED_COMP'
+      EXPORTING
+        im_ped_comp  = gs_output_tab
+        im_modo      = gs_modo
+      TABLES
+        t_bapiret    = gt_bapiret
+      EXCEPTIONS
+        failure      = 1
+        not_found    = 2
+        oper_invalid = 3
+        OTHERS       = 4.
+
+      LOOP AT gt_bapiret INTO DATA(ls_ret).
+        IF ls_ret-type CA ( 'AEX' ).
+          ROLLBACK WORK.
+          gb_error = abap_true.
+          RETURN.
+        ENDIF.
+      ENDLOOP.
+  ENDLOOP.
+
+  COMMIT WORK.
+  IF gb_error = abap_false.
+    PERFORM get_data.
+  ENDIF.
+ENDFORM.
+*&---------------------------------------------------------------------*
+*&      Form  CALL_ALV
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+*  -->  p1        text
+*  <--  p2        text
+*----------------------------------------------------------------------*
+FORM call_alv .
+  DATA lr_alv TYPE REF TO cl_salv_table.
+
+  CALL METHOD cl_salv_table=>factory
+    IMPORTING
+      r_salv_table = lr_alv
+    CHANGING
+      t_table      = gt_output.
+
+  lr_alv->get_functions( )->set_all( abap_true ).
+
+  lr_alv->get_display_settings( )->set_striped_pattern( cl_salv_display_settings=>true  ).
+
+  lr_alv->display( ).
+ENDFORM.
+*&---------------------------------------------------------------------*
+*&      Form  GET_DATA
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+*  -->  p1        text
+*  <--  p2        text
+*----------------------------------------------------------------------*
+FORM get_data .
+  SELECT p~num_pedido, p~fornecedor, p~tipo_pedido, p~data_pedido
+    FROM ztb58mm_pedido as p
+    INTO TABLE @gt_output.
+
+  IF sy-subrc = 0.
+    PERFORM call_alv.
+  ENDIF.
+ENDFORM.
+*&---------------------------------------------------------------------*
+*&      Form  GET_MODO
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+*  -->  p1        text
+*  <--  p2        text
+*----------------------------------------------------------------------*
+FORM get_modo USING num_pedido TYPE ztb58mm_pedido-num_pedido.
+    SELECT p~num_pedido, p~fornecedor, p~tipo_pedido, p~data_pedido
+    FROM ztb58mm_pedido as p
+    INTO TABLE @gt_output
+    WHERE p~num_pedido = @num_pedido.
+
+    gs_modo = 'I'.
+
+    IF sy-subrc = 0.
+       gs_modo = 'U'.
+    ENDIF.
+ENDFORM.

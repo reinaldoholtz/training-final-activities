@@ -1,0 +1,102 @@
+*&---------------------------------------------------------------------*
+*&  Include           Z58MM_INPUT_PEDIDOS_VIA_SEL
+*&---------------------------------------------------------------------*
+
+DATA: lt_file_table TYPE filetable.
+DATA  l_rc          TYPE i.
+DATA  it_data_excel TYPE truxs_t_text_data.
+
+SELECTION-SCREEN BEGIN OF BLOCK b1 WITH FRAME TITLE TEXT-001.
+
+PARAMETERS: p_file TYPE string OBLIGATORY.
+SELECTION-SCREEN END OF BLOCK b1.
+
+AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_file.
+  cl_gui_frontend_services=>file_open_dialog(
+    EXPORTING
+      window_title            = CONV string( TEXT-t01 )
+      default_extension       = 'xls*'
+*    default_filename        =
+*    file_filter             =
+*    with_encoding           =
+*    initial_directory       =
+      multiselection          = abap_false
+    CHANGING
+      file_table              = lt_file_table
+      rc                      = l_rc
+*    user_action             =
+*    file_encoding           =
+  EXCEPTIONS
+    file_open_dialog_failed = 1
+    cntl_error              = 2
+    error_no_gui            = 3
+    not_supported_by_gui    = 4
+    OTHERS                  = 5
+  ).
+  IF sy-subrc <> 0.
+    MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno
+               WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
+  ENDIF.
+  TRY.
+    "atribui o primeiro ficheiro q encontrar no retorno do método q busca o nome
+      p_file = lt_file_table[ 1 ]-filename.
+    CATCH cx_sy_itab_line_not_found.
+  ENDTRY.
+
+START-OF-SELECTION.
+  CALL FUNCTION 'GUI_UPLOAD'
+    EXPORTING
+      filename                = p_file
+      filetype                = 'DAT'
+    TABLES
+      data_tab                = it_data_excel
+    EXCEPTIONS
+      file_open_error         = 1
+      file_read_error         = 2
+      no_batch                = 3
+      gui_refuse_filetransfer = 4
+      invalid_type            = 5
+      no_authority            = 6
+      unknown_error           = 7
+      bad_data_format         = 8
+      header_not_allowed      = 9
+      separator_not_allowed   = 10
+      header_too_long         = 11
+      unknown_dp_error        = 12
+      access_denied           = 13
+      dp_out_of_memory        = 14
+      disk_full               = 15
+      dp_timeout              = 16
+      OTHERS                  = 17.
+  IF sy-subrc <> 0.
+    MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno
+               WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
+  ENDIF.
+
+  DATA(l_file) = CONV rlgrap-filename( p_file ).
+
+  CALL FUNCTION 'TEXT_CONVERT_XLS_TO_SAP'
+    EXPORTING
+      i_line_header        = abap_true
+      i_tab_raw_data       = it_data_excel
+      i_filename           = l_file
+    TABLES
+      i_tab_converted_data = gt_pedidos_excel
+    EXCEPTIONS
+      conversion_failed    = 1
+      OTHERS               = 2.
+  IF sy-subrc <> 0.
+    MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno
+               WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
+  ENDIF.
+
+END-OF-SELECTION.
+
+IF gt_pedidos_excel IS NOT INITIAL.
+  PERFORM call_bapi.
+  IF gb_error = abap_true.
+     CALL FUNCTION 'RSCRMBW_DISPLAY_BAPIRET2'
+         TABLES
+           it_return = gt_bapiret.
+  ENDIF.
+ENDIF.

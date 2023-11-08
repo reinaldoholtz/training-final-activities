@@ -1,0 +1,47 @@
+*&---------------------------------------------------------------------*
+*&  Include           Z58MM_INPUT_PEDIDOS_VIA_TOP
+*&---------------------------------------------------------------------*
+
+DATA gt_bapiret    TYPE bapiret2_t.
+DATA gb_error TYPE abap_bool.
+DATA gt_poitems TYPE STANDARD TABLE OF bapimepoitem.
+DATA gt_poitemsx TYPE STANDARD TABLE OF bapimepoitemx.
+DATA gt_poservices TYPE STANDARD TABLE OF bapiesllc.
+DATA gs_poitem LIKE bapimepoitem.
+DATA gs_poitemx LIKE bapimepoitemx.
+DATA gt_output  TYPE STANDARD TABLE OF bapimepoheader.
+
+DATA: gs_poheader         TYPE bapimepoheader,
+      gs_poheaderx        TYPE bapimepoheaderx,
+      gs_exppurchaseorder TYPE bapimepoheader-po_number,
+      gs_expheader        TYPE bapimepoheader,
+      gs_poservices       TYPE bapiesllc.
+
+TYPES:
+  BEGIN OF ty_pedido_excel,
+    comp_code  TYPE ekko-bukrs,
+    doc_type   TYPE ekko-bsart,
+    vendor     TYPE ekko-lifnr,
+    purch_org  TYPE ekko-ekorg,
+    pur_group  TYPE ekko-ekgrp,
+    po_item    TYPE ekpo-ebelp,
+    short_text TYPE ekpo-txz01,
+    material   TYPE ekpo-matnr,
+    plant      TYPE ekpo-werks,
+    matl_group TYPE ekpo-matkl,
+    info_rec   TYPE ekpo-infnr,
+    quantity   TYPE ekpo-menge,
+    po_unit    TYPE ekpo-meins,
+    net_price  TYPE ekpo-peinh,
+    price_unit TYPE ekpo-netpr,
+    item_cat   TYPE ekpo-pstyp,
+    gr_ind     TYPE ekpo-wepos,
+    ir_ind     TYPE ekpo-repos,
+    gr_non_val TYPE ekpo-weunb,
+    gr_basediv TYPE ekpo-webre,
+    tax_code   TYPE ekpo-mwskz,
+  END OF ty_pedido_excel.
+
+TYPES ty_pedido_excel_tab TYPE TABLE OF ty_pedido_excel.
+
+DATA: gt_pedidos_excel TYPE ty_pedido_excel_tab.

@@ -1,0 +1,43 @@
+*&---------------------------------------------------------------------*
+*&  Include           SAPMZ58PMREVISAO_DEF
+*&---------------------------------------------------------------------*
+CLASS lcl_revisao DEFINITION.
+  PUBLIC SECTION.
+    DATA: go_container TYPE REF TO cl_gui_custom_container.
+    DATA: go_alv_grid  TYPE REF TO cl_gui_alv_grid.
+    DATA: gt_fieldcat TYPE lvc_t_fcat.
+    METHODS:
+      create_grid
+        IMPORTING
+          im_container TYPE scrfname,
+      set_fieldcat
+        EXPORTING
+          ex_fieldcat  TYPE lvc_t_fcat
+        CHANGING
+          output_table TYPE STANDARD TABLE,
+      read
+        EXPORTING
+          ex_header      TYPE ty_dados_veiculo_tab
+          ex_revisao_tab TYPE ty_revisao_tab,
+      save
+        IMPORTING
+                  im_revisoes_tab TYPE ty_revisao_tab
+        EXPORTING
+                  ex_bapiret_tab  TYPE bapiret2_t
+                  ex_codveic      TYPE ztb58pm_revisao-cod_veic
+        RETURNING VALUE(re_ok)    TYPE abap_bool,
+
+      print
+        IMPORTING
+          im_sf_revisao TYPE zes58_form_revisoes-cod_veic,
+
+      handler_data_changed
+            FOR EVENT data_changed OF cl_gui_alv_grid
+        IMPORTING
+            e_onf4
+            e_onf4_after
+            e_onf4_before
+            e_ucomm
+            er_data_changed.
+
+ENDCLASS.

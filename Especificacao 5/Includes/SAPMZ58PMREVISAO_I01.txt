@@ -1,0 +1,80 @@
+*&---------------------------------------------------------------------*
+*&  Include           SAPMZ58PMREVISAO_I01
+*&---------------------------------------------------------------------*
+*&---------------------------------------------------------------------*
+*&      Module  USER_COMMAND_9000  INPUT
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+MODULE user_command_9000 INPUT.
+  DATA: lt_bapiret TYPE bapiret2_t.
+  CASE gv_action.
+    WHEN 'BACK' OR 'LEAVE' OR 'CANCEL'.
+      LEAVE PROGRAM.
+    WHEN 'SAVE'.
+      go_revisao->go_alv_grid->check_changed_data( ).
+
+      IF go_revisao->save(
+        EXPORTING
+          im_revisoes_tab = gt_revisoes
+        IMPORTING
+          ex_bapiret_tab = lt_bapiret ) = abap_true.
+      ENDIF.
+
+      IF lt_bapiret IS INITIAL.
+        MESSAGE s002(z_58_revisao) DISPLAY LIKE 'I'.
+      ELSE.
+        MESSAGE s003(z_58_revisao) DISPLAY LIKE 'E'.
+      ENDIF.
+
+      go_revisao->read(
+          IMPORTING
+            ex_header      = gt_dados_veiculo
+            ex_revisao_tab = gt_revisoes
+        ).
+
+      go_revisao->go_alv_grid->refresh_table_display( ).
+
+    WHEN 'READ'.
+      go_revisao->read(
+        IMPORTING
+          ex_header      = gt_dados_veiculo
+          ex_revisao_tab = gt_revisoes
+      ).
+      DATA wa_bddata LIKE LINE OF gt_dados_veiculo.
+      gv_crud = z58gt_c_crud-update.
+
+      LOOP AT gt_dados_veiculo INTO wa_bddata.
+        MOVE-CORRESPONDING wa_bddata TO wa_screen_veiculo_tab.
+      ENDLOOP.
+
+      go_revisao->go_alv_grid->refresh_table_display( ).
+
+      IF gt_revisoes IS INITIAL.
+        MESSAGE s000(z_58_revisao) DISPLAY LIKE 'E'.
+      ENDIF.
+
+      IF gt_dados_veiculo IS INITIAL.
+        FREE: gt_revisoes,
+        wa_screen_veiculo_tab-ano,
+        wa_screen_veiculo_tab-cod_fab,
+        wa_screen_veiculo_tab-cod_mod,
+        wa_screen_veiculo_tab-desc_fab,
+        wa_screen_veiculo_tab-desc_mod,
+        wa_screen_veiculo_tab-desc_veic,
+        wa_screen_veiculo_tab-placa.
+
+        MESSAGE s001(z_58_revisao) DISPLAY LIKE 'E'.
+        gv_crud = z58gt_c_crud-read.
+      ENDIF.
+
+    WHEN 'PRINT'.
+      IF wa_screen_revisao-cod_veic IS INITIAL.
+        MESSAGE s004(z_58_revisao) DISPLAY LIKE 'E'.
+      ELSE.
+        go_revisao->print( im_sf_revisao = wa_screen_revisao-cod_veic ).
+      ENDIF.
+
+  ENDCASE.
+
+ENDMODULE.

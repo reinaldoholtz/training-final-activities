@@ -1,0 +1,188 @@
+*&---------------------------------------------------------------------*
+*&  Include           SAPMZ58PMREVISAO_IMP
+*&---------------------------------------------------------------------*
+CLASS lcl_revisao IMPLEMENTATION.
+  METHOD create_grid.
+    DATA: l_input TYPE i VALUE 1.
+
+    IF go_container IS NOT BOUND.
+      CREATE OBJECT go_container
+        EXPORTING
+          container_name = im_container. "'ALV_GRID'.
+      CREATE OBJECT go_alv_grid
+        EXPORTING
+          i_parent = go_container.
+    ENDIF.
+    SET HANDLER handler_data_changed FOR go_alv_grid.
+
+    set_fieldcat(
+      IMPORTING
+        ex_fieldcat  = gt_fieldcat
+      CHANGING
+        output_table = gt_revisoes ).
+
+    LOOP AT gt_fieldcat ASSIGNING FIELD-SYMBOL(<fields>).
+      <fields>-edit = abap_true.
+      "como não temos os domínios amarrados da forma correta
+      "temos de indicar no field cat a tabel de onde vem os F4
+      <fields>-ref_table = 'ZTB58PM_REVISAO'. "<<<
+      CASE <fields>-fieldname.
+        WHEN 'COD_VEIC'.
+          <fields>-no_out = abap_true.
+      ENDCASE.
+    ENDLOOP.
+    "go_alv_grid
+    "como indicamos a tabela no fieldcat vai aparecer um erro sempre q abrir. este método omite o erro
+    go_alv_grid->activate_display_protocol( i_dialog = abap_false ). "<<
+    go_alv_grid->set_table_for_first_display(
+      EXPORTING
+        i_save                        = 'A'
+        i_default                     = 'X'
+      CHANGING
+        it_outtab                     = gt_revisoes
+        it_fieldcatalog               = gt_fieldcat ).
+
+    IF gv_crud = z58gt_c_crud-read.
+      l_input = 0.
+    ELSE.
+      l_input = 1.
+    ENDIF.
+
+    go_alv_grid->set_ready_for_input(
+        i_ready_for_input = l_input
+     ).
+    go_alv_grid->register_edit_event(
+      EXPORTING
+        i_event_id = cl_gui_alv_grid=>mc_evt_modified ).
+  ENDMETHOD.
+
+  METHOD set_fieldcat.
+    cl_salv_table=>factory(
+      IMPORTING
+        r_salv_table   = DATA(l_salv_table)
+      CHANGING
+        t_table        = gt_revisoes
+    ).
+    ex_fieldcat = cl_salv_controller_metadata=>get_lvc_fieldcatalog(
+                  r_columns      = l_salv_table->get_columns( )
+                  r_aggregations = l_salv_table->get_aggregations( )
+              ).
+
+  ENDMETHOD.
+
+  METHOD handler_data_changed.
+    IF er_data_changed->mt_deleted_rows IS NOT INITIAL.
+      LOOP AT er_data_changed->mt_deleted_rows INTO DATA(ls_deleted).
+        READ TABLE gt_revisoes INTO DATA(ls_update_revisao) INDEX ls_deleted-row_id.
+        ls_update_revisao-mark_del = abap_true.
+        APPEND ls_update_revisao TO gt_update_revisao.
+      ENDLOOP.
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD read.
+    SELECT v~cod_veic, v~placa, v~desc_veic, v~ano, m~cod_mod, m~desc_mod, f~cod_fab, f~desc_fab
+      FROM ztb58pm_veiculo AS v
+     INNER JOIN ztb58pm_mod_veic AS m ON m~cod_mod = v~cod_mod
+     INNER JOIN ztb58pm_fab_veic AS f ON f~cod_fab = m~cod_fab
+      INTO CORRESPONDING FIELDS OF TABLE @ex_header
+     WHERE v~cod_veic = @wa_screen_revisao-cod_veic.
+
+    IF sy-subrc IS INITIAL.
+      SELECT * FROM
+       ztb58pm_revisao
+       INTO CORRESPONDING FIELDS OF TABLE @ex_revisao_tab
+      WHERE cod_veic = @wa_screen_revisao-cod_veic.
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD save.
+    DATA: lt_revisoes_tab TYPE TABLE OF ztb58pm_revisao.
+    DATA: wa_revisao_data TYPE ztb58pm_revisao.
+
+    IF gt_update_revisao IS NOT INITIAL.
+      LOOP AT gt_update_revisao INTO DATA(ls_revisao_delete).
+        IF ls_revisao_delete-mark_del = abap_true.
+          DELETE FROM ztb58pm_revisao
+            WHERE cod_revis  = ls_revisao_delete-cod_revis
+              AND cod_veic   = wa_screen_revisao-cod_veic.
+        ENDIF.
+      ENDLOOP.
+    ENDIF.
+
+    IF im_revisoes_tab IS NOT INITIAL.
+      MOVE-CORRESPONDING im_revisoes_tab TO lt_revisoes_tab.
+
+      IF lt_revisoes_tab IS NOT INITIAL.
+        LOOP AT lt_revisoes_tab INTO DATA(ls_line_revisao).
+          SELECT SINGLE *
+          FROM ztb58pm_revisao
+          INTO wa_revisao_data
+          WHERE cod_revis  = ls_line_revisao-cod_revis
+            AND cod_veic   = wa_screen_revisao-cod_veic.
+
+          IF sy-subrc IS NOT INITIAL.
+            ls_line_revisao-cod_veic = wa_screen_revisao-cod_veic.
+            INSERT ztb58pm_revisao FROM ls_line_revisao.
+          ELSE.
+            MODIFY ztb58pm_revisao FROM ls_line_revisao.
+          ENDIF.
+        ENDLOOP.
+      ENDIF.
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD print.
+    DATA: ls_sf_revisao TYPE zes58_form_revisoes,
+          lt_revisoes   TYPE ztab_58_revisoes.
+    DATA: lv_fm_smartform TYPE rs38l_fnam.
+
+    DATA: ls_ctrl_sf  TYPE ssfctrlop.
+    DATA: ls_out_opt  TYPE ssfcompop.
+
+    CALL FUNCTION 'SSF_FUNCTION_MODULE_NAME'
+      EXPORTING
+        formname = 'ZSF_58REVISOES'
+      IMPORTING
+        fm_name  = lv_fm_smartform.
+
+    "IMPORTANTE COLOCAR O SINGLE NO SELECT
+    SELECT SINGLE v~cod_veic, v~placa, v~desc_veic, v~ano,
+           m~cod_mod, m~desc_mod, f~cod_fab, f~desc_fab
+      FROM ztb58pm_veiculo AS v
+     INNER JOIN ztb58pm_mod_veic AS m ON m~cod_mod = v~cod_mod
+     INNER JOIN ztb58pm_fab_veic AS f ON f~cod_fab = m~cod_fab
+      INTO CORRESPONDING FIELDS OF @ls_sf_revisao
+     WHERE v~cod_veic = @im_sf_revisao.
+
+    IF sy-subrc IS INITIAL.
+      SELECT *
+        FROM ztb58pm_revisao
+        INTO CORRESPONDING FIELDS OF TABLE lt_revisoes
+       WHERE cod_veic = ls_sf_revisao-cod_veic.
+
+    ENDIF.
+
+    ls_ctrl_sf-no_dialog = abap_false. "VAI aparecer a janela antes do relatorio
+    "ls_ctrl_sf-no_dialog = abap_true. "nao VAI aparecer a janela antes do relatorio
+    ls_out_opt-tdtitle   = 'Titulo Veiculo'. "Vai aparecer no titulo da janela antes do relatorio
+
+    CALL FUNCTION lv_fm_smartform "'/1BCDWB/SF00000326' (codigo do smartforms = ZSF_58REVISOES)
+      EXPORTING
+        control_parameters = ls_ctrl_sf
+        output_options     = ls_out_opt
+        im_veiculo         = ls_sf_revisao "parametros do meu SMARTFORMS
+      TABLES
+        tab_revisoes       = lt_revisoes
+      EXCEPTIONS
+        formatting_error   = 1
+        internal_error     = 2
+        send_error         = 3
+        user_canceled      = 4
+        OTHERS             = 5.
+    IF sy-subrc <> 0.
+      MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
+    ENDIF.
+  ENDMETHOD.
+
+ENDCLASS.

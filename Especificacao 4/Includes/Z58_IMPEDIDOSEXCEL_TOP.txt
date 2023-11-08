@@ -1,0 +1,21 @@
+*&---------------------------------------------------------------------*
+*& Include Z58_IMPEDIDOSEXCEL_TOP
+*&---------------------------------------------------------------------*
+DATA: gb_error TYPE abap_bool.
+DATA: gs_output_tab TYPE ztb58mm_pedido.
+DATA: gt_bapiret    TYPE bapiret2_t.
+DATA: gs_modo       TYPE c.
+
+TYPES:
+  BEGIN OF ty_pedido_excel,
+    num_pedido  TYPE ztb58mm_pedido-num_pedido,
+    fornecedor  TYPE ztb58mm_pedido-fornecedor,
+    tipo_pedido TYPE ztb58mm_pedido-tipo_pedido,
+    data_pedido TYPE ztb58mm_pedido-data_pedido,
+  END OF ty_pedido_excel.
+
+TYPES ty_pedido_excel_tab TYPE TABLE OF ty_pedido_excel.
+
+DATA: gt_pedidos_excel TYPE ty_pedido_excel_tab.
+
+DATA: gt_output        TYPE ty_pedido_excel_tab.

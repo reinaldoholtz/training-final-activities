@@ -1,0 +1,21 @@
+*&---------------------------------------------------------------------*
+*&  Include           Z58_REL_PED_FORNECEDOR_DEF
+*&---------------------------------------------------------------------*
+CLASS lcl_report_alv DEFINITION.
+  PUBLIC SECTION.
+    CLASS-DATA:
+      my_instance TYPE REF TO lcl_report_alv.
+      DATA : has_data TYPE abap_bool.
+    CLASS-METHODS:
+      factory
+        RETURNING VALUE(re_instance) TYPE REF TO lcl_report_alv.
+    METHODS:
+      get_data,
+      output_alv,
+      hasdata
+        RETURNING VALUE(re_has_data) TYPE abap_bool,
+      on_link_click FOR EVENT link_click OF cl_salv_events_table
+        IMPORTING
+            row
+            column.
+ENDCLASS.

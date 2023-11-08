@@ -1,0 +1,25 @@
+*&---------------------------------------------------------------------*
+*& Report Z58_REL_REVISAO
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT z58_rel_revisao.
+
+INCLUDE z58_rel_revisao_top.
+INCLUDE z58_rel_revisao_sel.
+INCLUDE z58_rel_revisao_forms.
+
+START-OF-SELECTION.
+  IF p_codvei IS NOT INITIAL.
+    PERFORM buscar_dados.
+    IF gs_sf_revisao IS NOT INITIAL.
+       PERFORM call_report.
+    ELSE.
+      DATA: msg TYPE string.
+      CONCATENATE 'Não foram encontrados dados do veículo: ' p_codvei INTO msg.
+      MESSAGE msg TYPE 'S' DISPLAY LIKE 'E'.
+    ENDIF.
+  ELSE.
+    MESSAGE 'Informe o código do veículo!!!' TYPE 'S' DISPLAY LIKE 'I'.
+  ENDIF.
+END-OF-SELECTION.

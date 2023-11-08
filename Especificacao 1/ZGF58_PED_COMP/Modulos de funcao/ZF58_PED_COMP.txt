@@ -1,0 +1,52 @@
+FUNCTION ZF58_PED_COMP
+  IMPORTING
+    VALUE(IM_PED_COMP) TYPE ZTB58MM_PEDIDO
+    IM_MODO TYPE CHAR1 DEFAULT 'I'
+  TABLES
+    T_BAPIRET TYPE BAPIRET2_T OPTIONAL
+  EXCEPTIONS
+    FAILURE
+    NOT_FOUND
+    OPER_INVALID.
+
+
+
+  DATA: l_notfound TYPE abap_bool,
+        l_msg      TYPE string.
+
+  CASE im_modo.
+    WHEN 'I'.
+      PERFORM insert_data USING im_ped_comp CHANGING l_notfound.
+      IF l_notfound = abap_true.
+        APPEND INITIAL LINE TO t_bapiret
+                 ASSIGNING FIELD-SYMBOL(<bapiret_1>).
+                 <bapiret_1>-id = sy-msgid.
+                 <bapiret_1>-number = sy-msgno.
+                 <bapiret_1>-type   = sy-msgty.
+                 <bapiret_1>-message_v1 = sy-msgv1.
+                 <bapiret_1>-message_v2 = sy-msgv2.
+                 <bapiret_1>-message_v3 = sy-msgv3.
+                 <bapiret_1>-message_v4 = sy-msgv4.
+        RAISE failure.
+      ELSE.
+        MESSAGE e001(z_58_pedidos_compra) INTO l_msg.
+      ENDIF.
+    WHEN 'U'.
+      PERFORM update_data USING im_ped_comp CHANGING l_notfound.
+      IF l_notfound = abap_true.
+        RAISE not_found.
+      ELSE.
+        MESSAGE e001(z_58_pedidos_compra) INTO l_msg.
+      ENDIF.
+    WHEN 'D'.
+      PERFORM delete_data USING im_ped_comp CHANGING l_notfound.
+      IF l_notfound = abap_true.
+        RAISE not_found.
+      ELSE.
+        MESSAGE e002(z_58_pedidos_compra) INTO l_msg.
+      ENDIF.
+    WHEN OTHERS.
+      MESSAGE e000(z_58_pedidos_compra) INTO l_msg.
+      RAISE oper_invalid.
+  ENDCASE.
+ENDFUNCTION.

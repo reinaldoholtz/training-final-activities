@@ -1,0 +1,58 @@
+*----------------------------------------------------------------------*
+***INCLUDE LZGF58_PED_COMPF01.
+*----------------------------------------------------------------------*
+*&---------------------------------------------------------------------*
+*&      Form  INSERT_DATA
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+*      -->P_IM_PED_COMP  text
+*----------------------------------------------------------------------*
+FORM insert_data  USING    p_im_ped_comp TYPE ztb58mm_pedido
+                  CHANGING p_l_notfound TYPE abap_bool.
+
+  INSERT ztb58mm_pedido FROM p_im_ped_comp.
+  IF sy-subrc IS NOT INITIAL.
+     p_l_notfound = abap_true.
+     RETURN.
+  ENDIF.
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*&      Form  UPDATE_DATA
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+*      -->P_IM_PED_COMP  text
+*      <--P_L_NOTFOUND  text
+*----------------------------------------------------------------------*
+FORM update_data  USING    p_im_ped_comp TYPE ztb58mm_pedido
+                  CHANGING p_l_notfound TYPE abap_bool.
+
+  MODIFY ztb58mm_pedido FROM p_im_ped_comp.
+  IF sy-subrc IS NOT INITIAL.
+    p_l_notfound = abap_true.
+    RETURN.
+  ELSE.
+    p_l_notfound = abap_false.
+  ENDIF.
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*&      Form  DELETE_DATA
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+*      -->P_IM_PED_COMP  text
+*      <--P_L_NOTFOUND  text
+*----------------------------------------------------------------------*
+FORM delete_data  USING    p_im_ped_comp TYPE ztb58mm_pedido
+                  CHANGING p_l_notfound TYPE abap_bool.
+
+  DELETE FROM ztb58mm_pedido
+    WHERE num_pedido = p_im_ped_comp-num_pedido.
+  IF sy-subrc IS NOT INITIAL.
+     p_l_notfound = abap_true.
+     RETURN.
+  ENDIF.
+ENDFORM.

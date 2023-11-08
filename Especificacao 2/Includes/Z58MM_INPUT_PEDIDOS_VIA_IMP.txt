@@ -1,0 +1,92 @@
+*&---------------------------------------------------------------------*
+*&  Include           Z58MM_INPUT_PEDIDOS_VIA_IMP
+*&---------------------------------------------------------------------*
+
+FORM call_bapi.
+LOOP AT gt_pedidos_excel INTO DATA(ls_line_pedido).
+
+  MOVE-CORRESPONDING: ls_line_pedido TO gs_poheader,
+                      ls_line_pedido TO gs_poitem.
+
+  gs_poheader-doc_date = sy-datum.
+
+  APPEND gs_poitem TO gt_poitems.
+
+  gs_poheader-vendor = |{ gs_poheader-vendor ALPHA = IN }|.
+
+  gs_poheaderx-comp_code = 'X'.
+  gs_poheaderx-doc_type = 'X'.
+  gs_poheaderx-vendor = 'X'.
+  gs_poheaderx-purch_org = 'X'.
+  gs_poheaderx-pur_group = 'X'.
+
+  gs_poitemx-po_item    = ls_line_pedido-po_item.
+  gs_poitemx-po_itemx   = 'X'.
+  gs_poitemx-short_text = 'X'.
+  gs_poitemx-material   = 'X'.
+  gs_poitemx-plant      = 'X'.
+  gs_poitemx-matl_group = 'X'.
+  gs_poitemx-info_rec   = 'X'.
+  gs_poitemx-quantity   = 'X'.
+  gs_poitemx-po_unit    = 'X'.
+  gs_poitemx-net_price  = 'X'.
+  gs_poitemx-price_unit = 'X'.
+  gs_poitemx-tax_code   = 'X'.
+  gs_poitemx-item_cat   = 'X'.
+  gs_poitemx-gr_ind     = 'X'.
+  gs_poitemx-gr_non_val = 'X'.
+  gs_poitemx-ir_ind     = 'X'.
+  gs_poitemx-gr_basediv = 'X'.
+  APPEND gs_poitemx TO gt_poitemsx.
+
+  CALL FUNCTION 'BAPI_PO_CREATE1'
+    EXPORTING
+      poheader   = gs_poheader
+      poheaderx  = gs_poheaderx
+    IMPORTING
+      expheader  = gs_expheader
+    TABLES
+      return     = gt_bapiret
+      poitem     = gt_poitems
+      poitemx    = gt_poitemsx
+      poservices = gt_poservices.
+ENDLOOP.
+gb_error = abap_false.
+LOOP AT gt_bapiret INTO DATA(ls_ret).
+   IF ls_ret-type CA ( 'AEX' ).
+      CALL FUNCTION 'BAPI_TRANSACTION_ROLLBACK'.
+      "MESSAGE 'Dados do Excel não foram importados' TYPE 'S' DISPLAY LIKE 'E'.
+      gb_error = abap_true.
+      RETURN.
+   ENDIF.
+ENDLOOP.
+
+APPEND gs_poheader TO gt_output.
+CALL FUNCTION 'BAPI_TRANSACTION_COMMIT'.
+IF gt_output IS NOT INITIAL.
+   PERFORM call_alv.
+ENDIF.
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*&      Form  CALL_ALV
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+*  -->  p1        text
+*  <--  p2        text
+*----------------------------------------------------------------------*
+FORM call_alv .
+    DATA local_object TYPE REF TO cl_salv_table.
+
+    CALL METHOD cl_salv_table=>factory
+      IMPORTING
+        r_salv_table = local_object
+      CHANGING
+        t_table      = gt_output.
+
+    local_object->get_display_settings( )->set_striped_pattern( cl_salv_display_settings=>true  ).
+
+    CALL METHOD local_object->display.
+
+ENDFORM.

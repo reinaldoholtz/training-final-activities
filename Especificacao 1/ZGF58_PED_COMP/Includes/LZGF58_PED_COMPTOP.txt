@@ -1,0 +1,3 @@
+FUNCTION-POOL ZGF58_PED_COMP.               "MESSAGE-ID ..
+
+* INCLUDE LZGF58_PED_COMPD...                " Local class definition

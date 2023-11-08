@@ -1,0 +1,70 @@
+*&---------------------------------------------------------------------*
+*& Include SAPMZ58PMREVISAO_TOP                              PoolMóds.        SAPMZ58PMREVISAO
+*&
+*&---------------------------------------------------------------------*
+PROGRAM sapmz58pmrevisao.
+
+DATA gv_action TYPE sy-ucomm. "variavel que guarda a acao do usuario
+DATA: wa_screen_revisao  TYPE ztb58pm_revisao. "guarda os valores de tela
+DATA: gv_crud TYPE c VALUE z58gt_c_crud-read.
+DATA  gt_bapiret    TYPE bapiret2_t.
+
+*ZTB58PM_VEICULO
+*COD_VEIC - novo ZPME58_COD_VEIC
+*PLACA
+*DESC_VEIC
+*ANO
+*COD_MOD
+
+*ZTB58PM_MOD_VEIC
+*COD_MOD - novo ZPME58_COD_MOD
+*COD_FAB
+*DESC_MOD
+
+"ZTB58PM_FAB_VEIC
+"COD_FAB - novo ZPME58_COD_FAB
+"DESC_FAB
+
+"ZTB58PM_REVISAO
+"COD_REVIS
+"COD_VEIC
+"DT_REVISAO
+"KM_VEI
+
+TYPES:
+  BEGIN OF ty_dados_veiculo,
+    cod_veic  TYPE ztb58pm_veiculo-cod_veic,
+    placa     TYPE ztb58pm_veiculo-placa,
+    desc_veic TYPE ztb58pm_veiculo-desc_veic,
+    ano       TYPE ztb58pm_veiculo-ano,
+    cod_mod   TYPE ztb58pm_mod_veic-cod_mod,
+    desc_mod  TYPE ztb58pm_mod_veic-desc_mod,
+    cod_fab   TYPE ztb58pm_fab_veic-cod_fab,
+    desc_fab  TYPE ztb58pm_fab_veic-desc_fab,
+  END OF ty_dados_veiculo.
+
+TYPES ty_dados_veiculo_tab TYPE TABLE OF ty_dados_veiculo.
+DATA: gt_dados_veiculo     TYPE ty_dados_veiculo_tab.
+
+DATA wa_screen_veiculo_tab LIKE LINE OF gt_dados_veiculo.
+
+
+TYPES:
+  BEGIN OF ty_revisao,
+    cod_revis  TYPE ztb58pm_revisao-cod_revis,
+    cod_veic   TYPE ztb58pm_revisao-cod_veic,
+    dt_revisao TYPE ztb58pm_revisao-dt_revisao,
+    km_vei     TYPE ztb58pm_revisao-km_vei,
+    mark_del   TYPE abap_bool,
+  END OF ty_revisao.
+
+TYPES ty_revisao_tab TYPE TABLE OF ty_revisao.
+DATA: gt_revisoes    TYPE ty_revisao_tab.
+DATA: gt_update_revisao TYPE ty_revisao_tab.
+
+INCLUDE sapmz58pmrevisao_def.
+
+DATA: go_revisao  TYPE REF TO lcl_revisao.
+
+LOAD-OF-PROGRAM.
+  CREATE OBJECT go_revisao.

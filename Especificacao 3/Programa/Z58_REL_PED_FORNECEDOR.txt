@@ -1,0 +1,24 @@
+*&---------------------------------------------------------------------*
+*& Report  Z58_REL_PED_FORNECEDOR
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+REPORT Z58_REL_PED_FORNECEDOR.
+
+INCLUDE Z58_REL_PED_FORNECEDOR_TOP.
+
+INCLUDE Z58_REL_PED_FORNECEDOR_SEL.
+
+INCLUDE Z58_REL_PED_FORNECEDOR_DEF.
+
+INCLUDE Z58_REL_PED_FORNECEDOR_IMP.
+
+START-OF-SELECTION.
+  gr_report = lcl_report_alv=>factory( ).
+  gr_report->get_data( ).
+
+END-OF-SELECTION.
+
+  gr_report->output_alv( ).
