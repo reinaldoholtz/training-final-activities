@@ -1,3 +1,4 @@
+# Final activities
 All the mentioned topics involved practical activities, and at the end, we had to complete the following tasks:
 
 Activity 1:
