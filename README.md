@@ -6,10 +6,9 @@ ABAP Objects (Classes, Interfaces, Objects, Methods, Events)
 ALV, ALV_GRID, Function Module, Module POOL, Batch input, BAPI, BADI, SAP Script, Smart Forms.
 
 
-# Final activities
-All the mentioned topics involved practical activities, and at the end, we had to complete the following tasks:
 
 
+# Below are the final training activities:
 
 # Activity 1:
 Create a custom Z table to record purchase orders sent to suppliers. This table will be populated via a function module to be created and maintained using the SM30 transaction for updates.
